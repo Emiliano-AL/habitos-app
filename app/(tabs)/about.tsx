@@ -1,16 +1,10 @@
-import { Image } from "expo-image";
-import { Link } from "expo-router";
 import { StyleSheet, Text, View } from "react-native";
 
 export default function HomeScreen() {
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Hello</Text>
-      <Image
-        source={require("@/assets/images/icon.png")}
-        style={styles.image}
-      />
-      <Link href="/(tabs)/about">About</Link>
+      <Text style={styles.title}>About</Text>
+      <Text style={styles.description}>This is the about page</Text>
     </View>
   );
 }
@@ -29,8 +23,8 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     color: "#0F172A",
   },
-  image: {
-    width: 100,
-    height: 100,
+  description: {
+    fontSize: 16,
+    color: "#64748B",
   },
 });
