@@ -1,16 +1,42 @@
-import { Image } from "expo-image";
-import { Link } from "expo-router";
-import { StyleSheet, Text, View } from "react-native";
+import HabitCard from "@/components/HabitCard";
+import HabitGreeting from "@/components/HabitGreeting";
+import { StyleSheet, View } from "react-native";
 
 export default function HomeScreen() {
+  const habits = [
+    {
+      id: 1,
+      title: "Read 10 pages",
+      streak: 10,
+      isCompleted: true,
+    },
+    {
+      id: 2,
+      title: "Exercise 30 minutes",
+      streak: 10,
+      isCompleted: false,
+    },
+    {
+      id: 3,
+      title: "Drink 2 liters of water",
+      streak: 10,
+      isCompleted: true,
+    },
+  ];
+
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Hello</Text>
-      <Image
-        source={require("@/assets/images/icon.png")}
-        style={styles.image}
-      />
-      <Link href="/(tabs)/about">About</Link>
+      <HabitGreeting name="John" />
+      <View style={{ gap: 12 }}>
+        {habits.map((habit) => (
+          <HabitCard
+            key={habit.id}
+            title={habit.title}
+            streak={habit.streak}
+            isCompleted={habit.isCompleted}
+          />
+        ))}
+      </View>
     </View>
   );
 }
