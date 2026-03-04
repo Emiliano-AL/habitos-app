@@ -1,5 +1,6 @@
-import { StyleSheet, Text, View } from "react-native";
+import { StyleSheet, View } from "react-native";
 import Screen from "./Screen";
+import { ThemedText } from "./themed-text";
 
 export default function HabitGreeting({ name = "sample" }) {
   const dateNow = new Date();
@@ -13,10 +14,12 @@ export default function HabitGreeting({ name = "sample" }) {
   return (
     <Screen>
       <View style={styles.container}>
-        <Text style={styles.greeting}>
+        <ThemedText style={styles.greeting}>
           {greeting}, {name}!
-        </Text>
-        <Text style={styles.subtitle}>{dateNow.toLocaleDateString()}</Text>
+        </ThemedText>
+        <ThemedText style={styles.subtitle}>
+          {dateNow.toLocaleDateString()}
+        </ThemedText>
       </View>
     </Screen>
   );
