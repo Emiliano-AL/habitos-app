@@ -1,11 +1,12 @@
 import HabitCard from "@/components/HabitCard";
 import HabitGreeting from "@/components/HabitGreeting";
 import ProfileHeader from "@/components/ProfileHeader";
+import PrimaryButton from "@/components/PrymaryButton";
 import Screen from "@/components/Screen";
-import { ThemedText } from "@/components/themed-text";
 import { useThemeColor } from "@/hooks/use-theme-color";
 import { useCallback, useMemo, useState } from "react";
-import { Pressable, StyleSheet, TextInput, View } from "react-native";
+import { StyleSheet, TextInput, View } from "react-native";
+import { ScrollView } from "react-native-reanimated/lib/typescript/Animated";
 
 type Habit = {
   id: string;
@@ -106,15 +107,16 @@ export default function HomeScreen() {
             { borderColor: border, color: text, backgroundColor: surface },
           ]}
         />
-        <Pressable
-          style={[styles.addButton, { backgroundColor: primary }]}
+        <PrimaryButton
+          title="Add"
           onPress={handleAddHabit}
           disabled={!newHabit.trim()}
-        >
-          <ThemedText type="defaultSemiBold">Add</ThemedText>
-        </Pressable>
+        />
       </View>
-      <View style={{ gap: 12 }}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 22, gap: 12 }}
+      >
         {habits.map((habit) => (
           <HabitCard
             key={habit.id}
@@ -125,7 +127,7 @@ export default function HomeScreen() {
             onToggle={() => toggle(habit.id)}
           />
         ))}
-      </View>
+      </ScrollView>
     </Screen>
   );
 }
