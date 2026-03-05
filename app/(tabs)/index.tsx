@@ -3,10 +3,17 @@ import HabitGreeting from "@/components/HabitGreeting";
 import ProfileHeader from "@/components/ProfileHeader";
 import PrimaryButton from "@/components/PrymaryButton";
 import Screen from "@/components/Screen";
+import { ThemedText } from "@/components/themed-text";
 import { useThemeColor } from "@/hooks/use-theme-color";
 import { useCallback, useMemo, useState } from "react";
-import { StyleSheet, TextInput, View } from "react-native";
-import { ScrollView } from "react-native-reanimated/lib/typescript/Animated";
+import {
+  FlatList,
+  ListRenderItemInfo,
+  StyleSheet,
+  TextInput,
+  View,
+} from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 type Habit = {
   id: string;
@@ -18,31 +25,32 @@ type Habit = {
 
 const initialHabits: Habit[] = [
   {
-    id: 1,
+    id: `h${Date.now()}`,
     title: "Read 10 pages",
     streak: 10,
     isCompleted: true,
     priority: "low",
   },
   {
-    id: 2,
+    id: `h${Date.now()}`,
     title: "Exercise 30 minutes",
     streak: 10,
     isCompleted: false,
     priority: "medium",
   },
   {
-    id: 3,
+    id: `h${Date.now()}`,
     title: "Drink 2 liters of water",
     streak: 10,
     isCompleted: true,
     priority: "high",
   },
 ];
+
 export default function HomeScreen() {
   const [habits, setHabits] = useState<Habit[]>(initialHabits);
   const [newHabit, setNewHabit] = useState<string>("");
-
+  const insets = useSafeAreaInsets();
   // const [clicks, setClicks] = useState(0);
   // const [text, setText] = useState("Hello, world!");
   // const [visible, setVisible] = useState(true);
@@ -91,6 +99,28 @@ export default function HomeScreen() {
     [habits],
   );
 
+  const keyExtractor = useCallback((item: Habit) => item.id, []);
+  const renderItem = useCallback(
+    ({ item }: ListRenderItemInfo<Habit>) => (
+      <HabitCard
+        key={item.id}
+        title={item.title}
+        streak={item.streak}
+        isCompleted={item.isCompleted}
+        priority={item.priority}
+        onToggle={() => toggle(item.id)}
+      />
+    ),
+    [toggle],
+  );
+
+  const itemSeparator = () => <View style={{ height: 12 }} />;
+  const ListEmptyComponent = () => (
+    <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+      <ThemedText>No habits found</ThemedText>
+    </View>
+  );
+
   return (
     <Screen>
       <ProfileHeader name="John Doe" role="Software Engineer" />
@@ -113,7 +143,7 @@ export default function HomeScreen() {
           disabled={!newHabit.trim()}
         />
       </View>
-      <ScrollView
+      {/* <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 22, gap: 12 }}
       >
@@ -127,7 +157,18 @@ export default function HomeScreen() {
             onToggle={() => toggle(habit.id)}
           />
         ))}
-      </ScrollView>
+      </ScrollView> */}
+      <FlatList
+        data={habits}
+        keyExtractor={keyExtractor}
+        renderItem={renderItem}
+        ItemSeparatorComponent={itemSeparator}
+        ListEmptyComponent={ListEmptyComponent}
+        contentContainerStyle={{ paddingBottom: insets.bottom + 22, gap: 12 }}
+        initialNumToRender={8}
+        windowSize={10}
+        showsVerticalScrollIndicator={false}
+      />
     </Screen>
   );
 }
