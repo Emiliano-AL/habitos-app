@@ -4,7 +4,9 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
     createContext,
     useCallback,
+    useContext,
     useEffect,
+    useMemo,
     useReducer,
     useRef,
 } from "react";
@@ -99,7 +101,7 @@ export const HabitsProvider = ({ children }: { children: React.ReactNode }) => {
     })();
   }, []);
 
-  const saveTimer = useRef<NodeJS.Timeout | null>(null);
+  const saveTimer = useRef<number | null>(null);
 
   useEffect(() => {
     if (state.loading) return;
@@ -131,5 +133,26 @@ export const HabitsProvider = ({ children }: { children: React.ReactNode }) => {
     dispatch({ type: "TOGGLE", id, today });
   }, []);
 
+  const value = useMemo(
+    () => ({
+      loading: state.loading,
+      habits: state.habits,
+      addHabit,
+      toggleHabit,
+    }),
+    [state.loading, state.habits, addHabit, toggleHabit],
+  );
+
+  return (
+    <HabitsContext.Provider value={value}>{children}</HabitsContext.Provider>
+  );
   //return <HabitsContext.Provider value={{ ...state, addHabit, toggleHabit }}>{children}</HabitsContext.Provider>;
+};
+
+export const useHabits = () => {
+  const context = useContext(HabitsContext);
+  if (!context) {
+    throw new Error("useHabits must be used within a HabitsProvider");
+  }
+  return context;
 };

@@ -4,9 +4,11 @@ import ProfileHeader from "@/components/ProfileHeader";
 import PrimaryButton from "@/components/PrymaryButton";
 import Screen from "@/components/Screen";
 import { ThemedText } from "@/components/themed-text";
+import { useHabits } from "@/context/HabitsContext";
 import { useThemeColor } from "@/hooks/use-theme-color";
 import { useCallback, useMemo, useState } from "react";
 import {
+  ActivityIndicator,
   FlatList,
   ListRenderItemInfo,
   StyleSheet,
@@ -15,40 +17,42 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-type Habit = {
-  id: string;
-  title: string;
-  streak: number;
-  isCompleted: boolean;
-  priority: "low" | "medium" | "high";
-};
+// type Habit = {
+//   id: string;
+//   title: string;
+//   streak: number;
+//   isCompleted: boolean;
+//   priority: "low" | "medium" | "high";
+// };
 
-const initialHabits: Habit[] = [
-  {
-    id: `h${Date.now()}`,
-    title: "Read 10 pages",
-    streak: 10,
-    isCompleted: true,
-    priority: "low",
-  },
-  {
-    id: `h${Date.now()}`,
-    title: "Exercise 30 minutes",
-    streak: 10,
-    isCompleted: false,
-    priority: "medium",
-  },
-  {
-    id: `h${Date.now()}`,
-    title: "Drink 2 liters of water",
-    streak: 10,
-    isCompleted: true,
-    priority: "high",
-  },
-];
+// const initialHabits: Habit[] = [
+//   {
+//     id: `h${Date.now()}`,
+//     title: "Read 10 pages",
+//     streak: 10,
+//     isCompleted: true,
+//     priority: "low",
+//   },
+//   {
+//     id: `h${Date.now()}`,
+//     title: "Exercise 30 minutes",
+//     streak: 10,
+//     isCompleted: false,
+//     priority: "medium",
+//   },
+//   {
+//     id: `h${Date.now()}`,
+//     title: "Drink 2 liters of water",
+//     streak: 10,
+//     isCompleted: true,
+//     priority: "high",
+//   },
+// ];
 
 export default function HomeScreen() {
-  const [habits, setHabits] = useState<Habit[]>(initialHabits);
+  const { loading, habits, addHabit, toggleHabit } = useHabits();
+
+  // const [habits, setHabits] = useState<Habit[]>(initialHabits);
   const [newHabit, setNewHabit] = useState<string>("");
   const insets = useSafeAreaInsets();
   // const [clicks, setClicks] = useState(0);
@@ -58,60 +62,74 @@ export default function HomeScreen() {
   const border = useThemeColor({}, "border");
   const surface = useThemeColor({}, "surface");
   const primary = useThemeColor({}, "primary");
-  const onPrimary = useThemeColor({}, "onPrimary");
+  // const onPrimary = useThemeColor({}, "onPrimary");
   const muted = useThemeColor({}, "muted");
   const text = useThemeColor({}, "text");
   // const muted = useThemeColor({}, "muted");
 
-  const toggle = useCallback((id: string) => {
-    setHabits(
-      habits.map((h) => {
-        if (h.id !== id) return h;
-        const completed = !h.isCompleted;
-        return {
-          ...h,
-          isCompleted: completed,
-          streak: completed ? h.streak + 1 : Math.max(0, h.streak - 1),
-        };
-      }),
-    );
-  }, []);
+  // const toggle = useCallback((id: string) => {
+  //   setHabits(
+  //     habits.map((h) => {
+  //       if (h.id !== id) return h;
+  //       const completed = !h.isCompleted;
+  //       return {
+  //         ...h,
+  //         isCompleted: completed,
+  //         streak: completed ? h.streak + 1 : Math.max(0, h.streak - 1),
+  //       };
+  //     }),
+  //   );
+  // }, []);
 
   const handleAddHabit = useCallback(() => {
     const title = newHabit.trim();
     if (!title) return;
-    setHabits((prev) => [
-      {
-        id: `h${Date.now()}`,
-        title,
-        streak: 0,
-        isCompleted: false,
-        priority: "low",
-      },
-      ...prev,
-    ]);
+    addHabit(newHabit);
     setNewHabit("");
-  }, [newHabit]);
+  }, [newHabit, addHabit]);
+
+  // const handleAddHabit = useCallback(() => {
+  //   const title = newHabit.trim();
+  //   if (!title) return;
+  //   setHabits((prev) => [
+  //     {
+  //       id: `h${Date.now()}`,
+  //       title,
+  //       streak: 0,
+  //       isCompleted: false,
+  //       priority: "low",
+  //     },
+  //     ...prev,
+  //   ]);
+  //   setNewHabit("");
+  // }, [newHabit]);
 
   const total = habits.length;
-  const completed = useMemo(
-    () => habits.filter((h) => h.isCompleted).length,
-    [habits],
-  );
+  const completed = useMemo(() => {
+    const today = new Date().toDateString();
+    return habits.filter(
+      (h) => h.lastDoneAt && new Date(h.lastDoneAt).toDateString() === today,
+    ).length;
+  }, [habits]);
 
-  const keyExtractor = useCallback((item: Habit) => item.id, []);
+  // const keyExtractor = useCallback((item: Habit) => item.id, []);
   const renderItem = useCallback(
-    ({ item }: ListRenderItemInfo<Habit>) => (
-      <HabitCard
-        key={item.id}
-        title={item.title}
-        streak={item.streak}
-        isCompleted={item.isCompleted}
-        priority={item.priority}
-        onToggle={() => toggle(item.id)}
-      />
-    ),
-    [toggle],
+    ({ item }: ListRenderItemInfo<any>) => {
+      const isToday = item.lastDoneAt
+        ? isSameDay(new Date(item.lastDoneAt), new Date())
+        : false;
+      return (
+        <HabitCard
+          key={item.id}
+          title={item.title}
+          streak={item.streak}
+          isCompleted={item.isCompleted}
+          priority={item.priority}
+          onToggle={() => toggleHabit(item.id, new Date())}
+        />
+      );
+    },
+    [toggleHabit],
   );
 
   const itemSeparator = () => <View style={{ height: 12 }} />;
@@ -120,6 +138,20 @@ export default function HomeScreen() {
       <ThemedText>No habits found</ThemedText>
     </View>
   );
+
+  if (loading) {
+    return (
+      <Screen>
+        <ActivityIndicator size="large" color={primary} />
+      </Screen>
+    );
+  }
+
+  const isSameDay = (a: string | number | Date, b: string | number | Date) => {
+    const aDate = new Date(a);
+    const bDate = new Date(b);
+    return aDate.toDateString() === bDate.toDateString();
+  };
 
   return (
     <Screen>
@@ -160,7 +192,6 @@ export default function HomeScreen() {
       </ScrollView> */}
       <FlatList
         data={habits}
-        keyExtractor={keyExtractor}
         renderItem={renderItem}
         ItemSeparatorComponent={itemSeparator}
         ListEmptyComponent={ListEmptyComponent}
