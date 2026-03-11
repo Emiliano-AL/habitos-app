@@ -4,8 +4,11 @@ import ProfileHeader from "@/components/ProfileHeader";
 import PrimaryButton from "@/components/PrymaryButton";
 import Screen from "@/components/Screen";
 import { ThemedText } from "@/components/themed-text";
+import { useCelebration } from "@/context/CelebrationProvider";
 import { useHabits } from "@/context/HabitsContext";
 import { useThemeColor } from "@/hooks/use-theme-color";
+import { getMotivation } from "@/services/motivation";
+import { Habit } from "@/types/habit";
 import { useCallback, useMemo, useState } from "react";
 import {
   ActivityIndicator,
@@ -58,6 +61,8 @@ export default function HomeScreen() {
   // const [clicks, setClicks] = useState(0);
   // const [text, setText] = useState("Hello, world!");
   // const [visible, setVisible] = useState(true);
+
+  const { celebrate } = useCelebration();
 
   const border = useThemeColor({}, "border");
   const surface = useThemeColor({}, "surface");
@@ -112,25 +117,33 @@ export default function HomeScreen() {
     ).length;
   }, [habits]);
 
+  const onToggleWithCelebration = async (item: Habit) => {
+    const wasToday = item.lastDoneAt
+      ? isSameDay(new Date(item.lastDoneAt), new Date())
+      : false;
+    toggleHabit(item.id, new Date());
+    if (!wasToday) {
+      const msg = await getMotivation("Ana", item.title);
+      celebrate(msg);
+    }
+  };
+
   // const keyExtractor = useCallback((item: Habit) => item.id, []);
-  const renderItem = useCallback(
-    ({ item }: ListRenderItemInfo<any>) => {
-      const isToday = item.lastDoneAt
-        ? isSameDay(new Date(item.lastDoneAt), new Date())
-        : false;
-      return (
-        <HabitCard
-          key={item.id}
-          title={item.title}
-          streak={item.streak}
-          isCompleted={item.isCompleted}
-          priority={item.priority}
-          onToggle={() => toggleHabit(item.id, new Date())}
-        />
-      );
-    },
-    [toggleHabit],
-  );
+  const renderItem = ({ item }: ListRenderItemInfo<any>) => {
+    const isToday = item.lastDoneAt
+      ? isSameDay(new Date(item.lastDoneAt), new Date())
+      : false;
+    return (
+      <HabitCard
+        key={item.id}
+        title={item.title}
+        streak={item.streak}
+        isCompleted={isToday}
+        priority={item.priority}
+        onToggle={() => onToggleWithCelebration(item.id)}
+      />
+    );
+  };
 
   const itemSeparator = () => <View style={{ height: 12 }} />;
   const ListEmptyComponent = () => (
